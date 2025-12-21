@@ -36,22 +36,18 @@ async function uploadCertificate() {
 
 // Verify Certificate
 async function verifyCertificate() {
-    const hash = document.getElementById("hash").value;
-    if (!hash) {
-        alert("Enter certificate hash");
+    const name = document.getElementById("name").value;
+    const course = document.getElementById("course").value;
+    const year = document.getElementById("year").value;
+    if (!name || !course || !year) {
+        alert("Fill all fields");
         return;
     }
+        const hash = ethers.utils.id(name + course + year);
     const contract = await connectWallet();
     if (!contract) return;
     const isValid = await contract.verifyCertificate(hash);
+    }
     document.getElementById("result").innerText = isValid ? "Certificate is VALID" : "Certificate is NOT VALID";
 }
 
-// Auto-fill hash on verify page
-window.onload = function() {
-    const params = new URLSearchParams(window.location.search);
-    const hash = params.get("hash");
-    if (hash && document.getElementById("hash")) {
-        document.getElementById("hash").value = hash;
-    }
-};
