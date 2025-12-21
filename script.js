@@ -1,3 +1,6 @@
+// Debug: Verify script loading
+alert("script.js loaded successfully!");
+
 // Smart Contract Configuration
 const contractAddress = "0x9d83e140330758a8fFD07F8Bd73e86ebcA8a5692";
 const contractABI = [
