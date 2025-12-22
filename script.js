@@ -57,6 +57,8 @@ async function uploadCertificate() {
         console.log("Transaction confirmed");
         
         alert("Certificate uploaded successfully!");
+        window.location.href = "verify.html";
+
         
         // Optional: Redirect to verify page with hash
         // window.location.href = "verify.html?hash=" + hash;
