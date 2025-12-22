@@ -108,3 +108,6 @@ async function verifyCertificate() {
         alert("Failed to verify certificate: " + error.message);
     }
 }
+window.uploadCertificate = uploadCertificate;
+window.verifyCertificate = verifyCertificate;
+
