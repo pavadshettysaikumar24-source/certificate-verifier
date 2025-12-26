@@ -41,8 +41,11 @@ async function uploadCertificate() {
         }
         
         // Generate deterministic hash
-        const hash = ethers.utils.id(name + course + year);
-        console.log("Generated hash:", hash);
+       const certId = name + "|" + course + "|" + year;
+const hash = ethers.utils.keccak256(
+  ethers.utils.toUtf8Bytes(certId)
+);
+
         
         // Get contract instance
         const contract = await getContract();
@@ -84,8 +87,11 @@ async function verifyCertificate() {
         }
         
         // Regenerate the SAME hash using the SAME formula
-        const hash = ethers.utils.id(name + course + year);
-        console.log("Regenerated hash for verification:", hash);
+      const certId = name + "|" + course + "|" + year;
+const hash = ethers.utils.keccak256(
+  ethers.utils.toUtf8Bytes(certId)
+);
+
         
         // Get contract instance
         const contract = await getContract();
