@@ -2,7 +2,7 @@
 alert("script.js loaded successfully!");
 
 // Smart Contract Configuration
-const contractAddress = "0x9d83e140330758a8fFD07F8Bd73e86ebcA8a5692";
+const contractAddress = "0x4426b784E1DDAB879071673d72182c27a9b3e2aa";
 const contractABI = [
     "function addCertificate(bytes32 hash) public",
     "function verifyCertificate(bytes32 hash) public view returns (bool)"
