@@ -1,7 +1,7 @@
 // ===============================
 // SMART CONTRACT CONFIG
 // ===============================
-const contractAddress = "0x7b5d0F82074cE9d4AA67C435c7df517088e0af2D";
+const contractAddress = "0x28b50E30F74428b731837970218a30Fa3FA98f3B";
 
 const contractABI = [
     "function addCertificate(bytes32 hash) public",
