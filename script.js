@@ -75,14 +75,15 @@ async function uploadCertificate() {
         const contract = await getAdminContract();
         if (!contract) return;
 
-        const btn = document.querySelector("button");
-        btn.disabled = true;
-        btn.innerText = "Uploading...";
+        const btn = document.querySelector("button[onclick='uploadCertificate()']");
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = "Uploading...";
+        }
 
         const tx = await contract.addCertificate(hash);
         await tx.wait();
 
-        // Success message
         const status = document.getElementById("uploadStatus");
         status.innerText = "✅ Certificate uploaded successfully. Share the QR below.";
         status.style.color = "green";
@@ -90,26 +91,28 @@ async function uploadCertificate() {
         // ===============================
         // QR CODE GENERATION
         // ===============================
-       const verifyURL =
-    `${window.location.origin}/certificate-verifier/verify.html` +
-    `?name=${encodeURIComponent(name)}` +
-    `&course=${encodeURIComponent(course)}` +
-    `&year=${encodeURIComponent(year)}`;
+        const verifyURL =
+            `${window.location.origin}/certificate-verifier/verify.html` +
+            `?name=${encodeURIComponent(name)}` +
+            `&course=${encodeURIComponent(course)}` +
+            `&year=${encodeURIComponent(year)}`;
 
         const qrDiv = document.getElementById("qrcode");
-        qrDiv.innerHTML = ""; // clear previous QR
+        if (qrDiv) {
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, {
+                text: verifyURL,
+                width: 220,
+                height: 220
+            });
 
-        new QRCode(qrDiv, {
-            text: verifyURL,
-            width: 220,
-            height: 220
-        });
+            qrDiv.scrollIntoView({ behavior: "smooth" });
+        }
 
-        // Scroll user to QR
-        qrDiv.scrollIntoView({ behavior: "smooth" });
-
-        btn.disabled = false;
-        btn.innerText = "Upload";
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "Upload";
+        }
 
     } catch (err) {
         console.error(err);
