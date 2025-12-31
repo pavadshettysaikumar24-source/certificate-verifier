@@ -5,7 +5,12 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-/* ================= ADMIN SIDE ================= */
+// ✅ NORMALIZATION (CRITICAL)
+function normalize(name, course, year) {
+    return `${name.trim().toLowerCase()}|${course.trim().toLowerCase()}|${year.trim()}`;
+}
+
+/* ================= ADMIN ================= */
 
 async function upload() {
     if (!window.ethereum) {
@@ -17,9 +22,14 @@ async function upload() {
     const course = document.getElementById("course").value;
     const year = document.getElementById("year").value;
 
-    const data = name + course + year;
+    if (!name || !course || !year) {
+        alert("Fill all fields");
+        return;
+    }
+
+    const certData = normalize(name, course, year);
     const hash = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(data)
+        ethers.utils.toUtf8Bytes(certData)
     );
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -27,12 +37,14 @@ async function upload() {
     const signer = provider.getSigner();
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-    await contract.addCertificate(hash);
+
+    // ✅ WAIT FOR BLOCKCHAIN CONFIRMATION
+    const tx = await contract.addCertificate(hash);
+    await tx.wait();
 
     document.getElementById("status").innerText =
         "✅ Certificate uploaded successfully";
 
-    // Generate QR with hash
     const verifyURL =
         `https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html?h=${hash}`;
 
@@ -44,29 +56,31 @@ async function upload() {
     });
 }
 
-/* ================= VERIFY SIDE ================= */
+/* ================= VERIFY ================= */
 
 async function autoVerify(hash) {
     const provider = new ethers.providers.JsonRpcProvider(
-        "https://rpc.ankr.com/eth_sepolia"   // change network if needed
+        "https://rpc.ankr.com/eth_sepolia"
     );
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
     const valid = await contract.verifyCertificate(hash);
 
     const result = document.getElementById("result");
-    if (valid) {
-        result.innerText = "✅ Certificate is VALID";
-        result.style.color = "green";
-    } else {
-        result.innerText = "❌ Certificate NOT FOUND";
-        result.style.color = "red";
-    }
+
+    result.innerText = valid
+        ? "✅ Certificate is VALID"
+        : "❌ Certificate NOT FOUND";
+
+    result.style.color = valid ? "green" : "red";
 }
 
-// Auto run when QR opens verify page
-const params = new URLSearchParams(window.location.search);
-const hashFromQR = params.get("h");
-if (hashFromQR) {
-    autoVerify(hashFromQR);
-}
+// ✅ RUN AFTER PAGE LOAD
+window.addEventListener("load", () => {
+    const params = new URLSearchParams(window.location.search);
+    const hash = params.get("h");
+
+    if (hash) {
+        autoVerify(hash);
+    }
+});
