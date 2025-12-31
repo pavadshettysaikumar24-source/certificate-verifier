@@ -29,7 +29,7 @@ async function getAdminContract() {
 // ===============================
 function getPublicContract() {
     const provider = new ethers.providers.JsonRpcProvider(
-        "https://rpc.sepolia.org"
+        "https://eth-sepolia.public.blastapi.io"
     );
 
     return new ethers.Contract(contractAddress, contractABI, provider);
@@ -46,10 +46,8 @@ async function showAdminWallet() {
         const signer = provider.getSigner();
         const address = await signer.getAddress();
 
-        const walletEl = document.getElementById("adminWallet");
-        if (walletEl) {
-            walletEl.innerText = "Connected wallet: " + address;
-        }
+        const el = document.getElementById("adminWallet");
+        if (el) el.innerText = "Connected wallet: " + address;
     } catch (err) {
         console.error(err);
     }
@@ -69,7 +67,7 @@ async function uploadCertificate() {
             return;
         }
 
-        const certId = name + "|" + course + "|" + year;
+        const certId = `${name}|${course}|${year}`;
         const hash = ethers.utils.keccak256(
             ethers.utils.toUtf8Bytes(certId)
         );
@@ -83,16 +81,19 @@ async function uploadCertificate() {
         document.getElementById("uploadStatus").innerText =
             "✅ Certificate uploaded successfully";
 
-        // 🔳 GENERATE QR LINK
+        // ===============================
+        // QR CODE GENERATION
+        // ===============================
         const verifyURL =
             `${window.location.origin}/verify.html` +
             `?name=${encodeURIComponent(name)}` +
             `&course=${encodeURIComponent(course)}` +
             `&year=${encodeURIComponent(year)}`;
 
-        if (document.getElementById("qrcode")) {
-            document.getElementById("qrcode").innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), {
+        const qrDiv = document.getElementById("qrcode");
+        if (qrDiv) {
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, {
                 text: verifyURL,
                 width: 200,
                 height: 200
@@ -119,7 +120,7 @@ async function verifyCertificate() {
             return;
         }
 
-        const certId = name + "|" + course + "|" + year;
+        const certId = `${name}|${course}|${year}`;
         const hash = ethers.utils.keccak256(
             ethers.utils.toUtf8Bytes(certId)
         );
@@ -147,12 +148,16 @@ window.addEventListener("load", () => {
     showAdminWallet();
 
     const params = new URLSearchParams(window.location.search);
-    if (params.has("name")) {
+    if (
+        params.has("name") &&
+        params.has("course") &&
+        params.has("year")
+    ) {
         document.getElementById("name").value = params.get("name");
         document.getElementById("course").value = params.get("course");
         document.getElementById("year").value = params.get("year");
 
-        verifyCertificate(); // auto verify
+        verifyCertificate();
     }
 });
 
