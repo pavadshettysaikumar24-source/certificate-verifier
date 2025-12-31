@@ -1,30 +1,43 @@
-// Smart Contract Configuration
+// ===============================
+// SMART CONTRACT CONFIG
+// ===============================
 const contractAddress = "0x6d273FeEeF11edC2B5Ca29A51A56eF5a3389F44A";
+
 const contractABI = [
     "function addCertificate(bytes32 hash) public",
     "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-// Helper: Get Contract Instance
-async function getContract() {
+// ===============================
+// ADMIN CONTRACT (MetaMask REQUIRED)
+// ===============================
+async function getAdminContract() {
     if (!window.ethereum) {
-        alert("MetaMask not installed. Please install MetaMask to continue.");
+        alert("MetaMask is required for admin access");
         return null;
     }
 
-    try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        return new ethers.Contract(contractAddress, contractABI, signer);
-    } catch (error) {
-        console.error("Error connecting to MetaMask:", error);
-        alert("Failed to connect to MetaMask: " + error.message);
-        return null;
-    }
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+
+    return new ethers.Contract(contractAddress, contractABI, signer);
 }
 
-// 🔐 Show Connected Admin Wallet (Upload page only)
+// ===============================
+// PUBLIC CONTRACT (NO MetaMask)
+// ===============================
+function getPublicContract() {
+    const provider = new ethers.providers.JsonRpcProvider(
+        "https://rpc.sepolia.org"
+    );
+
+    return new ethers.Contract(contractAddress, contractABI, provider);
+}
+
+// ===============================
+// SHOW ADMIN WALLET (ADMIN PAGE)
+// ===============================
 async function showAdminWallet() {
     try {
         if (!window.ethereum) return;
@@ -38,11 +51,13 @@ async function showAdminWallet() {
             walletEl.innerText = "Connected wallet: " + address;
         }
     } catch (err) {
-        console.error("Wallet fetch error:", err);
+        console.error(err);
     }
 }
 
-// Upload Certificate (Admin only)
+// ===============================
+// UPLOAD CERTIFICATE (ADMIN ONLY)
+// ===============================
 async function uploadCertificate() {
     try {
         const name = document.getElementById("name").value.trim();
@@ -50,49 +65,49 @@ async function uploadCertificate() {
         const year = document.getElementById("year").value.trim();
 
         if (!name || !course || !year) {
-            alert("Please fill all fields");
+            alert("Fill all fields");
             return;
         }
 
-        // Generate deterministic hash
         const certId = name + "|" + course + "|" + year;
         const hash = ethers.utils.keccak256(
             ethers.utils.toUtf8Bytes(certId)
         );
 
-        const contract = await getContract();
+        const contract = await getAdminContract();
         if (!contract) return;
 
-        // Disable upload button during tx
-        const uploadBtn = document.querySelector("button");
-        uploadBtn.disabled = true;
-        uploadBtn.innerText = "Uploading...";
-
         const tx = await contract.addCertificate(hash);
-        console.log("Transaction sent:", tx.hash);
-
         await tx.wait();
-        console.log("Transaction confirmed");
 
-        // Success message (clean UX)
-        const statusEl = document.getElementById("uploadStatus");
-        statusEl.innerText = "✅ Certificate uploaded successfully!";
-        statusEl.style.color = "green";
+        document.getElementById("uploadStatus").innerText =
+            "✅ Certificate uploaded successfully";
 
-        setTimeout(() => {
-            window.location.href = "verify.html";
-        }, 1500);
+        // 🔳 GENERATE QR LINK
+        const verifyURL =
+            `${window.location.origin}/verify.html` +
+            `?name=${encodeURIComponent(name)}` +
+            `&course=${encodeURIComponent(course)}` +
+            `&year=${encodeURIComponent(year)}`;
 
-        uploadBtn.disabled = false;
-        uploadBtn.innerText = "Upload";
+        if (document.getElementById("qrcode")) {
+            document.getElementById("qrcode").innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: verifyURL,
+                width: 200,
+                height: 200
+            });
+        }
 
-    } catch (error) {
-        console.error("Upload error:", error);
-        alert("Failed to upload certificate: " + error.message);
+    } catch (err) {
+        console.error(err);
+        alert("Upload failed");
     }
 }
 
-// Verify Certificate (Public)
+// ===============================
+// VERIFY CERTIFICATE (PUBLIC)
+// ===============================
 async function verifyCertificate() {
     try {
         const name = document.getElementById("name").value.trim();
@@ -100,40 +115,49 @@ async function verifyCertificate() {
         const year = document.getElementById("year").value.trim();
 
         if (!name || !course || !year) {
-            alert("Please fill all fields");
+            alert("Fill all fields");
             return;
         }
 
-        // Regenerate same hash
         const certId = name + "|" + course + "|" + year;
         const hash = ethers.utils.keccak256(
             ethers.utils.toUtf8Bytes(certId)
         );
 
-        const contract = await getContract();
-        if (!contract) return;
-
+        const contract = getPublicContract();
         const isValid = await contract.verifyCertificate(hash);
-        console.log("Verification result:", isValid);
 
-        const resultElement = document.getElementById("result");
-        if (isValid) {
-            resultElement.innerText = "✅ Certificate is VALID";
-            resultElement.style.color = "green";
-        } else {
-            resultElement.innerText = "❌ Certificate is NOT VALID";
-            resultElement.style.color = "red";
-        }
+        const result = document.getElementById("result");
+        result.innerText = isValid
+            ? "✅ Certificate is VALID"
+            : "❌ Certificate NOT found";
 
-    } catch (error) {
-        console.error("Verification error:", error);
-        alert("Failed to verify certificate: " + error.message);
+        result.style.color = isValid ? "green" : "red";
+
+    } catch (err) {
+        console.error(err);
+        alert("Verification failed");
     }
 }
 
-// Expose functions globally
+// ===============================
+// AUTO VERIFY FROM QR
+// ===============================
+window.addEventListener("load", () => {
+    showAdminWallet();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("name")) {
+        document.getElementById("name").value = params.get("name");
+        document.getElementById("course").value = params.get("course");
+        document.getElementById("year").value = params.get("year");
+
+        verifyCertificate(); // auto verify
+    }
+});
+
+// ===============================
+// EXPORT FUNCTIONS
+// ===============================
 window.uploadCertificate = uploadCertificate;
 window.verifyCertificate = verifyCertificate;
-
-// Auto-run on page load
-window.addEventListener("load", showAdminWallet);
