@@ -36,7 +36,7 @@ function getPublicContract() {
 }
 
 // ===============================
-// SHOW ADMIN WALLET (ADMIN PAGE)
+// SHOW ADMIN WALLET
 // ===============================
 async function showAdminWallet() {
     try {
@@ -75,11 +75,17 @@ async function uploadCertificate() {
         const contract = await getAdminContract();
         if (!contract) return;
 
+        const btn = document.querySelector("button");
+        btn.disabled = true;
+        btn.innerText = "Uploading...";
+
         const tx = await contract.addCertificate(hash);
         await tx.wait();
 
-        document.getElementById("uploadStatus").innerText =
-            "✅ Certificate uploaded successfully";
+        // Success message
+        const status = document.getElementById("uploadStatus");
+        status.innerText = "✅ Certificate uploaded successfully. Share the QR below.";
+        status.style.color = "green";
 
         // ===============================
         // QR CODE GENERATION
@@ -91,14 +97,19 @@ async function uploadCertificate() {
             `&year=${encodeURIComponent(year)}`;
 
         const qrDiv = document.getElementById("qrcode");
-        if (qrDiv) {
-            qrDiv.innerHTML = "";
-            new QRCode(qrDiv, {
-                text: verifyURL,
-                width: 200,
-                height: 200
-            });
-        }
+        qrDiv.innerHTML = ""; // clear previous QR
+
+        new QRCode(qrDiv, {
+            text: verifyURL,
+            width: 220,
+            height: 220
+        });
+
+        // Scroll user to QR
+        qrDiv.scrollIntoView({ behavior: "smooth" });
+
+        btn.disabled = false;
+        btn.innerText = "Upload";
 
     } catch (err) {
         console.error(err);
@@ -148,11 +159,7 @@ window.addEventListener("load", () => {
     showAdminWallet();
 
     const params = new URLSearchParams(window.location.search);
-    if (
-        params.has("name") &&
-        params.has("course") &&
-        params.has("year")
-    ) {
+    if (params.has("name") && params.has("course") && params.has("year")) {
         document.getElementById("name").value = params.get("name");
         document.getElementById("course").value = params.get("course");
         document.getElementById("year").value = params.get("year");
