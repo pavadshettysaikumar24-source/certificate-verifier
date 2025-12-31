@@ -90,11 +90,11 @@ async function uploadCertificate() {
         // ===============================
         // QR CODE GENERATION
         // ===============================
-        const verifyURL =
-            `${window.location.origin}/verify.html` +
-            `?name=${encodeURIComponent(name)}` +
-            `&course=${encodeURIComponent(course)}` +
-            `&year=${encodeURIComponent(year)}`;
+       const verifyURL =
+    `${window.location.origin}/certificate-verifier/verify.html` +
+    `?name=${encodeURIComponent(name)}` +
+    `&course=${encodeURIComponent(course)}` +
+    `&year=${encodeURIComponent(year)}`;
 
         const qrDiv = document.getElementById("qrcode");
         qrDiv.innerHTML = ""; // clear previous QR
