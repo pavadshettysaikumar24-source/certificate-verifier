@@ -1,96 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Admin – Upload Certificate</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 </head>
-
 <body>
 
-<h2 id="title">Checking admin access...</h2>
+<h2>Admin Panel – Upload Certificate</h2>
 
-<!-- 🔐 ADMIN CONTENT (HIDDEN UNTIL VERIFIED) -->
-<div id="adminContent" style="display:none;">
+<input id="name" placeholder="Student Name"><br><br>
+<input id="course" placeholder="Course"><br><br>
+<input id="year" placeholder="Year"><br><br>
 
-    <h2>Admin Panel – Upload Certificate</h2>
+<button onclick="upload()">Upload</button>
 
-    <!-- Optional: Show connected admin wallet -->
-    <p id="adminWallet"></p>
+<p id="status"></p>
+<div id="qrcode"></div>
 
-    <input id="name" placeholder="Student Name">
-    <input id="course" placeholder="Course">
-    <input id="year" placeholder="Year">
-
-    <button onclick="uploadCertificate()">Upload</button>
-
-    <p id="uploadStatus"></p>
-
-    <!-- 🔳 QR CODE WILL APPEAR HERE -->
-    <h3>Certificate QR Code</h3>
-    <div id="qrcode"></div>
-
-</div>
-
-<!-- ===============================
-     LIBRARIES
-=============================== -->
-
-<!-- ethers.js -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-
-<!-- QR Code library (REQUIRED) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<!-- ===============================
-     ADMIN ACCESS CHECK (ON-CHAIN)
-=============================== -->
-<script>
-async function checkAdmin() {
-    try {
-        if (!window.ethereum) {
-            alert("MetaMask required for admin access");
-            window.location.href = "verify.html";
-            return;
-        }
-
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-
-        const signer = provider.getSigner();
-        const userAddress = await signer.getAddress();
-
-        const contract = new ethers.Contract(
-            "0x28b50E30F74428b731837970218a30Fa3FA98f3B",
-            ["function admin() view returns (address)"],
-            provider
-        );
-
-        const adminAddress = await contract.admin();
-
-        if (userAddress.toLowerCase() !== adminAddress.toLowerCase()) {
-            alert("Only admin wallet can access this page");
-            window.location.href = "verify.html";
-            return;
-        }
-
-        // ✅ Admin verified
-        document.getElementById("title").innerText = "Admin Panel – Upload Certificate";
-        document.getElementById("adminContent").style.display = "block";
-
-    } catch (err) {
-        console.error("Admin check failed:", err);
-        window.location.href = "verify.html";
-    }
-}
-
-window.addEventListener("load", checkAdmin);
-</script>
-
-<!-- ===============================
-     MAIN BLOCKCHAIN LOGIC
-=============================== -->
 <script src="script.js"></script>
-
 </body>
 </html>
