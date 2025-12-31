@@ -1,155 +1,72 @@
-// ===============================
-// SMART CONTRACT CONFIG
-// ===============================
-const contractAddress = "0x28b50E30F74428b731837970218a30Fa3FA98f3B";
+const CONTRACT_ADDRESS = "0x8C6073365b8971626dcaeBA4D76FcD0975520858";
 
-const contractABI = [
-    "function addCertificate(bytes32 hash) public",
-    "function verifyCertificate(bytes32 hash) public view returns (bool)"
+const ABI = [
+  "function addCertificate(bytes32 hash) public",
+  "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-// ===============================
-// NORMALIZE FUNCTION (CRITICAL)
-// ===============================
-function normalize(name, course, year) {
-    return `${name.trim().toLowerCase()}|${course.trim().toLowerCase()}|${year.trim()}`;
-}
+/* ================= ADMIN SIDE ================= */
 
-// ===============================
-// ADMIN CONTRACT (MetaMask REQUIRED)
-// ===============================
-async function getAdminContract() {
+async function upload() {
     if (!window.ethereum) {
-        alert("MetaMask is required for admin access");
-        return null;
+        alert("MetaMask required for admin");
+        return;
     }
+
+    const name = document.getElementById("name").value;
+    const course = document.getElementById("course").value;
+    const year = document.getElementById("year").value;
+
+    const data = name + course + year;
+    const hash = ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes(data)
+    );
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
 
-    return new ethers.Contract(contractAddress, contractABI, signer);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    await contract.addCertificate(hash);
+
+    document.getElementById("status").innerText =
+        "✅ Certificate uploaded successfully";
+
+    // Generate QR with hash
+    const verifyURL =
+        `https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html?h=${hash}`;
+
+    document.getElementById("qrcode").innerHTML = "";
+    new QRCode(document.getElementById("qrcode"), {
+        text: verifyURL,
+        width: 200,
+        height: 200
+    });
 }
 
-// ===============================
-// PUBLIC CONTRACT (NO MetaMask)
-// ===============================
-function getPublicContract() {
+/* ================= VERIFY SIDE ================= */
+
+async function autoVerify(hash) {
     const provider = new ethers.providers.JsonRpcProvider(
-        "https://eth-sepolia.public.blastapi.io"
+        "https://rpc.ankr.com/eth_sepolia"   // change network if needed
     );
-    return new ethers.Contract(contractAddress, contractABI, provider);
-}
 
-// ===============================
-// UPLOAD CERTIFICATE (ADMIN)
-// ===============================
-async function uploadCertificate() {
-    try {
-        const name = document.getElementById("name").value;
-        const course = document.getElementById("course").value;
-        const year = document.getElementById("year").value;
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+    const valid = await contract.verifyCertificate(hash);
 
-        if (!name || !course || !year) {
-            alert("Fill all fields");
-            return;
-        }
-
-        // ✅ NORMALIZED HASH
-        const certId = normalize(name, course, year);
-        const hash = ethers.utils.keccak256(
-            ethers.utils.toUtf8Bytes(certId)
-        );
-
-        const contract = await getAdminContract();
-        if (!contract) return;
-
-        const tx = await contract.addCertificate(hash);
-        await tx.wait();
-
-        document.getElementById("uploadStatus").innerText =
-            "✅ Certificate uploaded successfully";
-        document.getElementById("uploadStatus").style.color = "green";
-
-        // ===============================
-        // QR CODE (FINAL URL)
-        // ===============================
-        const verifyURL =
-            "https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html" +
-            `?name=${encodeURIComponent(name)}` +
-            `&course=${encodeURIComponent(course)}` +
-            `&year=${encodeURIComponent(year)}`;
-
-        const qrDiv = document.getElementById("qrcode");
-        qrDiv.innerHTML = "";
-
-        new QRCode(qrDiv, {
-            text: verifyURL,
-            width: 220,
-            height: 220
-        });
-
-        qrDiv.scrollIntoView({ behavior: "smooth" });
-
-    } catch (err) {
-        console.error(err);
-        alert("Upload failed");
+    const result = document.getElementById("result");
+    if (valid) {
+        result.innerText = "✅ Certificate is VALID";
+        result.style.color = "green";
+    } else {
+        result.innerText = "❌ Certificate NOT FOUND";
+        result.style.color = "red";
     }
 }
 
-// ===============================
-// VERIFY CERTIFICATE (PUBLIC)
-// ===============================
-async function verifyCertificate() {
-    try {
-        const name = document.getElementById("name").value;
-        const course = document.getElementById("course").value;
-        const year = document.getElementById("year").value;
-
-        if (!name || !course || !year) {
-            alert("Fill all fields");
-            return;
-        }
-
-        // ✅ SAME NORMALIZATION
-        const certId = normalize(name, course, year);
-        const hash = ethers.utils.keccak256(
-            ethers.utils.toUtf8Bytes(certId)
-        );
-
-        const contract = getPublicContract();
-        const isValid = await contract.verifyCertificate(hash);
-
-        const result = document.getElementById("result");
-        result.innerText = isValid
-            ? "✅ Certificate is VALID"
-            : "❌ Certificate NOT found";
-
-        result.style.color = isValid ? "green" : "red";
-
-    } catch (err) {
-        console.error(err);
-        alert("Verification failed");
-    }
+// Auto run when QR opens verify page
+const params = new URLSearchParams(window.location.search);
+const hashFromQR = params.get("h");
+if (hashFromQR) {
+    autoVerify(hashFromQR);
 }
-
-// ===============================
-// AUTO VERIFY FROM QR
-// ===============================
-window.addEventListener("load", () => {
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.has("name")) {
-        document.getElementById("name").value = params.get("name");
-        document.getElementById("course").value = params.get("course");
-        document.getElementById("year").value = params.get("year");
-
-        verifyCertificate();
-    }
-});
-
-// ===============================
-// EXPORT
-// ===============================
-window.uploadCertificate = uploadCertificate;
-window.verifyCertificate = verifyCertificate;
