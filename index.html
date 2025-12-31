@@ -7,15 +7,19 @@
 
 <body>
 
-<h2>Admin Panel – Upload Certificate</h2>
+<h2 id="title">Checking admin access...</h2>
 
-<input id="name" placeholder="Student Name">
-<input id="course" placeholder="Course">
-<input id="year" placeholder="Year">
+<div id="adminContent" style="display:none;">
+    <h2>Admin Panel – Upload Certificate</h2>
 
-<button onclick="uploadCertificate()">Upload</button>
+    <input id="name" placeholder="Student Name">
+    <input id="course" placeholder="Course">
+    <input id="year" placeholder="Year">
 
-<p id="uploadStatus"></p>
+    <button onclick="uploadCertificate()">Upload</button>
+
+    <p id="uploadStatus"></p>
+</div>
 
 <!-- ethers -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -50,10 +54,15 @@ async function checkAdmin() {
         if (userAddress.toLowerCase() !== adminAddress.toLowerCase()) {
             alert("Only admin wallet can access this page");
             window.location.href = "verify.html";
+            return;
         }
 
+        // ✅ Admin verified
+        document.getElementById("title").innerText = "Admin Panel – Upload Certificate";
+        document.getElementById("adminContent").style.display = "block";
+
     } catch (err) {
-        console.error(err);
+        console.error("Admin check failed:", err);
         window.location.href = "verify.html";
     }
 }
@@ -66,5 +75,3 @@ window.addEventListener("load", checkAdmin);
 
 </body>
 </html>
-
-
