@@ -1,44 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Certificate</title>
+    <title>Admin – Upload Certificate</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- 🔐 ADMIN PROTECTION -->
-    <script>
-        if (sessionStorage.getItem("isAdmin") !== "true") {
-            alert("Admin access only");
+<h2>Admin Panel – Upload Certificate</h2>
+
+<input id="name" placeholder="Student Name">
+<input id="course" placeholder="Course">
+<input id="year" placeholder="Year">
+
+<button onclick="uploadCertificate()">Upload</button>
+
+<p id="uploadStatus"></p>
+
+<!-- ethers -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+<!-- 🔐 ADMIN CHECK (SMART CONTRACT BASED) -->
+<script>
+async function checkAdmin() {
+    try {
+        if (!window.ethereum) {
+            alert("MetaMask required");
+            window.location.href = "verify.html";
+            return;
+        }
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+
+        const signer = provider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        const contract = new ethers.Contract(
+            "0x4426b784E1DDAB879071673d72182c27a9b3e2aa",
+            ["function admin() view returns (address)"],
+            provider
+        );
+
+        const adminAddress = await contract.admin();
+
+        console.log("User:", userAddress);
+        console.log("Admin:", adminAddress);
+
+        if (userAddress.toLowerCase() !== adminAddress.toLowerCase()) {
+            alert("Only admin wallet can access this page");
             window.location.href = "verify.html";
         }
-    </script>
 
-    <h2>Upload Certificate</h2>
+    } catch (err) {
+        console.error(err);
+        window.location.href = "verify.html";
+    }
+}
 
-    <input id="name" placeholder="Student Name">
-    <input id="course" placeholder="Course">
-    <input id="year" placeholder="Year">
+window.addEventListener("load", checkAdmin);
+</script>
 
-    <button onclick="uploadCertificate()">Upload</button>
-
-    <br><br>
-
-    <!-- 🔓 LOGOUT BUTTON -->
-    <button onclick="logout()">Logout</button>
-
-    <p id="uploadStatus"></p>
-
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="script.js"></script>
-
-    <script>
-        function logout() {
-            sessionStorage.removeItem("isAdmin");
-            window.location.href = "verify.html";
-        }
-    </script>
+<!-- shared blockchain logic -->
+<script src="script.js"></script>
 
 </body>
 </html>
