@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Admin – Upload Certificate</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -9,8 +10,13 @@
 
 <h2 id="title">Checking admin access...</h2>
 
+<!-- 🔐 ADMIN CONTENT (HIDDEN UNTIL VERIFIED) -->
 <div id="adminContent" style="display:none;">
+
     <h2>Admin Panel – Upload Certificate</h2>
+
+    <!-- Optional: Show connected admin wallet -->
+    <p id="adminWallet"></p>
 
     <input id="name" placeholder="Student Name">
     <input id="course" placeholder="Course">
@@ -19,17 +25,31 @@
     <button onclick="uploadCertificate()">Upload</button>
 
     <p id="uploadStatus"></p>
+
+    <!-- 🔳 QR CODE WILL APPEAR HERE -->
+    <h3>Certificate QR Code</h3>
+    <div id="qrcode"></div>
+
 </div>
 
-<!-- ethers -->
+<!-- ===============================
+     LIBRARIES
+=============================== -->
+
+<!-- ethers.js -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
-<!-- 🔐 ADMIN CHECK (SMART CONTRACT BASED) -->
+<!-- QR Code library (REQUIRED) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<!-- ===============================
+     ADMIN ACCESS CHECK (ON-CHAIN)
+=============================== -->
 <script>
 async function checkAdmin() {
     try {
         if (!window.ethereum) {
-            alert("MetaMask required");
+            alert("MetaMask required for admin access");
             window.location.href = "verify.html";
             return;
         }
@@ -47,9 +67,6 @@ async function checkAdmin() {
         );
 
         const adminAddress = await contract.admin();
-
-        console.log("User:", userAddress);
-        console.log("Admin:", adminAddress);
 
         if (userAddress.toLowerCase() !== adminAddress.toLowerCase()) {
             alert("Only admin wallet can access this page");
@@ -70,7 +87,9 @@ async function checkAdmin() {
 window.addEventListener("load", checkAdmin);
 </script>
 
-<!-- shared blockchain logic -->
+<!-- ===============================
+     MAIN BLOCKCHAIN LOGIC
+=============================== -->
 <script src="script.js"></script>
 
 </body>
