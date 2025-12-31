@@ -9,6 +9,13 @@ const contractABI = [
 ];
 
 // ===============================
+// NORMALIZE FUNCTION (CRITICAL)
+// ===============================
+function normalize(name, course, year) {
+    return `${name.trim().toLowerCase()}|${course.trim().toLowerCase()}|${year.trim()}`;
+}
+
+// ===============================
 // ADMIN CONTRACT (MetaMask REQUIRED)
 // ===============================
 async function getAdminContract() {
@@ -31,43 +38,25 @@ function getPublicContract() {
     const provider = new ethers.providers.JsonRpcProvider(
         "https://eth-sepolia.public.blastapi.io"
     );
-
     return new ethers.Contract(contractAddress, contractABI, provider);
 }
 
 // ===============================
-// SHOW ADMIN WALLET
-// ===============================
-async function showAdminWallet() {
-    try {
-        if (!window.ethereum) return;
-
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-
-        const el = document.getElementById("adminWallet");
-        if (el) el.innerText = "Connected wallet: " + address;
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-// ===============================
-// UPLOAD CERTIFICATE (ADMIN ONLY)
+// UPLOAD CERTIFICATE (ADMIN)
 // ===============================
 async function uploadCertificate() {
     try {
-        const name = document.getElementById("name").value.trim();
-        const course = document.getElementById("course").value.trim();
-        const year = document.getElementById("year").value.trim();
+        const name = document.getElementById("name").value;
+        const course = document.getElementById("course").value;
+        const year = document.getElementById("year").value;
 
         if (!name || !course || !year) {
             alert("Fill all fields");
             return;
         }
 
-        const certId = `${name}|${course}|${year}`;
+        // ✅ NORMALIZED HASH
+        const certId = normalize(name, course, year);
         const hash = ethers.utils.keccak256(
             ethers.utils.toUtf8Bytes(certId)
         );
@@ -75,21 +64,15 @@ async function uploadCertificate() {
         const contract = await getAdminContract();
         if (!contract) return;
 
-        const btn = document.querySelector("button");
-        btn.disabled = true;
-        btn.innerText = "Uploading...";
-
         const tx = await contract.addCertificate(hash);
         await tx.wait();
 
-        // Success message
-        const status = document.getElementById("uploadStatus");
-        status.innerText =
-            "✅ Certificate uploaded successfully. Share the QR below.";
-        status.style.color = "green";
+        document.getElementById("uploadStatus").innerText =
+            "✅ Certificate uploaded successfully";
+        document.getElementById("uploadStatus").style.color = "green";
 
         // ===============================
-        // ✅ FINAL QR CODE URL (FIXED)
+        // QR CODE (FINAL URL)
         // ===============================
         const verifyURL =
             "https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html" +
@@ -108,9 +91,6 @@ async function uploadCertificate() {
 
         qrDiv.scrollIntoView({ behavior: "smooth" });
 
-        btn.disabled = false;
-        btn.innerText = "Upload";
-
     } catch (err) {
         console.error(err);
         alert("Upload failed");
@@ -122,16 +102,17 @@ async function uploadCertificate() {
 // ===============================
 async function verifyCertificate() {
     try {
-        const name = document.getElementById("name").value.trim();
-        const course = document.getElementById("course").value.trim();
-        const year = document.getElementById("year").value.trim();
+        const name = document.getElementById("name").value;
+        const course = document.getElementById("course").value;
+        const year = document.getElementById("year").value;
 
         if (!name || !course || !year) {
             alert("Fill all fields");
             return;
         }
 
-        const certId = `${name}|${course}|${year}`;
+        // ✅ SAME NORMALIZATION
+        const certId = normalize(name, course, year);
         const hash = ethers.utils.keccak256(
             ethers.utils.toUtf8Bytes(certId)
         );
@@ -156,10 +137,9 @@ async function verifyCertificate() {
 // AUTO VERIFY FROM QR
 // ===============================
 window.addEventListener("load", () => {
-    showAdminWallet();
-
     const params = new URLSearchParams(window.location.search);
-    if (params.has("name") && params.has("course") && params.has("year")) {
+
+    if (params.has("name")) {
         document.getElementById("name").value = params.get("name");
         document.getElementById("course").value = params.get("course");
         document.getElementById("year").value = params.get("year");
@@ -169,7 +149,7 @@ window.addEventListener("load", () => {
 });
 
 // ===============================
-// EXPORT FUNCTIONS
+// EXPORT
 // ===============================
 window.uploadCertificate = uploadCertificate;
 window.verifyCertificate = verifyCertificate;
