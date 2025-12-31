@@ -75,44 +75,41 @@ async function uploadCertificate() {
         const contract = await getAdminContract();
         if (!contract) return;
 
-        const btn = document.querySelector("button[onclick='uploadCertificate()']");
-        if (btn) {
-            btn.disabled = true;
-            btn.innerText = "Uploading...";
-        }
+        const btn = document.querySelector("button");
+        btn.disabled = true;
+        btn.innerText = "Uploading...";
 
         const tx = await contract.addCertificate(hash);
         await tx.wait();
 
+        // Success message
         const status = document.getElementById("uploadStatus");
-        status.innerText = "✅ Certificate uploaded successfully. Share the QR below.";
+        status.innerText =
+            "✅ Certificate uploaded successfully. Share the QR below.";
         status.style.color = "green";
 
         // ===============================
-        // QR CODE GENERATION
+        // ✅ FINAL QR CODE URL (FIXED)
         // ===============================
         const verifyURL =
-            `${window.location.origin}/certificate-verifier/verify.html` +
+            "https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html" +
             `?name=${encodeURIComponent(name)}` +
             `&course=${encodeURIComponent(course)}` +
             `&year=${encodeURIComponent(year)}`;
 
         const qrDiv = document.getElementById("qrcode");
-        if (qrDiv) {
-            qrDiv.innerHTML = "";
-            new QRCode(qrDiv, {
-                text: verifyURL,
-                width: 220,
-                height: 220
-            });
+        qrDiv.innerHTML = "";
 
-            qrDiv.scrollIntoView({ behavior: "smooth" });
-        }
+        new QRCode(qrDiv, {
+            text: verifyURL,
+            width: 220,
+            height: 220
+        });
 
-        if (btn) {
-            btn.disabled = false;
-            btn.innerText = "Upload";
-        }
+        qrDiv.scrollIntoView({ behavior: "smooth" });
+
+        btn.disabled = false;
+        btn.innerText = "Upload";
 
     } catch (err) {
         console.error(err);
