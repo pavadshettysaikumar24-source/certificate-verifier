@@ -2,16 +2,13 @@
 <html>
 <head>
     <title>Verify Certificate</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 </head>
 <body>
-    <h2>Verify Certificate</h2>
-    <input id="name" placeholder="Student Name">
-    <input id="course" placeholder="Course">
-    <input id="year" placeholder="Year">
-    <button onclick="verifyCertificate()">Verify</button>
-    <p id="result"></p>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="script.js"></script>
+
+<h2>Verify Certificate</h2>
+<p id="result">Waiting for QR scan...</p>
+
+<script src="script.js"></script>
 </body>
 </html>
