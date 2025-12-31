@@ -1,6 +1,3 @@
-// Debug: Verify script loading
-alert("script.js loaded successfully!");
-
 // Smart Contract Configuration
 const contractAddress = "0x4426b784E1DDAB879071673d72182c27a9b3e2aa";
 const contractABI = [
@@ -14,6 +11,7 @@ async function getContract() {
         alert("MetaMask not installed. Please install MetaMask to continue.");
         return null;
     }
+
     try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
@@ -26,82 +24,98 @@ async function getContract() {
     }
 }
 
-// Upload Certificate
+// 🔐 Show Connected Admin Wallet (Upload page only)
+async function showAdminWallet() {
+    try {
+        if (!window.ethereum) return;
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+
+        const walletEl = document.getElementById("adminWallet");
+        if (walletEl) {
+            walletEl.innerText = "Connected wallet: " + address;
+        }
+    } catch (err) {
+        console.error("Wallet fetch error:", err);
+    }
+}
+
+// Upload Certificate (Admin only)
 async function uploadCertificate() {
     try {
-        // Get and trim inputs
         const name = document.getElementById("name").value.trim();
         const course = document.getElementById("course").value.trim();
         const year = document.getElementById("year").value.trim();
-        
-        // Validate inputs
+
         if (!name || !course || !year) {
             alert("Please fill all fields");
             return;
         }
-        
-        // Generate deterministic hash
-       const certId = name + "|" + course + "|" + year;
-const hash = ethers.utils.keccak256(
-  ethers.utils.toUtf8Bytes(certId)
-);
 
-        
-        // Get contract instance
+        // Generate deterministic hash
+        const certId = name + "|" + course + "|" + year;
+        const hash = ethers.utils.keccak256(
+            ethers.utils.toUtf8Bytes(certId)
+        );
+
         const contract = await getContract();
         if (!contract) return;
-        
-        // Submit transaction
+
+        // Disable upload button during tx
+        const uploadBtn = document.querySelector("button");
+        uploadBtn.disabled = true;
+        uploadBtn.innerText = "Uploading...";
+
         const tx = await contract.addCertificate(hash);
         console.log("Transaction sent:", tx.hash);
-        
-        // Wait for confirmation
+
         await tx.wait();
         console.log("Transaction confirmed");
-        
-        alert("Certificate uploaded successfully!");
-        window.location.href = "verify.html";
 
-        
-        // Optional: Redirect to verify page with hash
-        // window.location.href = "verify.html?hash=" + hash;
-        
+        // Success message (clean UX)
+        const statusEl = document.getElementById("uploadStatus");
+        statusEl.innerText = "✅ Certificate uploaded successfully!";
+        statusEl.style.color = "green";
+
+        setTimeout(() => {
+            window.location.href = "verify.html";
+        }, 1500);
+
+        uploadBtn.disabled = false;
+        uploadBtn.innerText = "Upload";
+
     } catch (error) {
         console.error("Upload error:", error);
         alert("Failed to upload certificate: " + error.message);
     }
 }
 
-// Verify Certificate
+// Verify Certificate (Public)
 async function verifyCertificate() {
     try {
-        // Get and trim inputs
         const name = document.getElementById("name").value.trim();
         const course = document.getElementById("course").value.trim();
         const year = document.getElementById("year").value.trim();
-        
-        // Validate inputs
+
         if (!name || !course || !year) {
             alert("Please fill all fields");
             return;
         }
-        
-        // Regenerate the SAME hash using the SAME formula
-      const certId = name + "|" + course + "|" + year;
-const hash = ethers.utils.keccak256(
-  ethers.utils.toUtf8Bytes(certId)
-);
 
-        
-        // Get contract instance
+        // Regenerate same hash
+        const certId = name + "|" + course + "|" + year;
+        const hash = ethers.utils.keccak256(
+            ethers.utils.toUtf8Bytes(certId)
+        );
+
         const contract = await getContract();
         if (!contract) return;
-        
-        // Call verification function
+
         const isValid = await contract.verifyCertificate(hash);
         console.log("Verification result:", isValid);
-        
-        // Display result clearly
+
         const resultElement = document.getElementById("result");
         if (isValid) {
             resultElement.innerText = "✅ Certificate is VALID";
@@ -110,12 +124,16 @@ const hash = ethers.utils.keccak256(
             resultElement.innerText = "❌ Certificate is NOT VALID";
             resultElement.style.color = "red";
         }
-        
+
     } catch (error) {
         console.error("Verification error:", error);
         alert("Failed to verify certificate: " + error.message);
     }
 }
+
+// Expose functions globally
 window.uploadCertificate = uploadCertificate;
 window.verifyCertificate = verifyCertificate;
 
+// Auto-run on page load
+window.addEventListener("load", showAdminWallet);
