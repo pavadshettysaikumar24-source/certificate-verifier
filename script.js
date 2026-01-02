@@ -82,5 +82,11 @@ window.addEventListener("load", () => {
 
     if (hash) {
         autoVerify(hash);
+      if (!ethers.utils.isHexString(hash, 32)) {
+    result.innerText = "❌ Invalid certificate hash";
+    result.style.color = "red";
+    return;
+}
+
     }
 });
