@@ -1,17 +1,92 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial;
+    margin: 0;
+    height: 100vh;
+    font-family: "Segoe UI", Arial, sans-serif;
+
+    /* Professional blue gradient */
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Center container */
+.container {
     text-align: center;
-    margin-top: 60px;
+    width: 100%;
+}
+
+/* Big responsive heading */
+h1 {
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    color: #ffffff;
+    margin-bottom: 25px;
+}
+
+/* Shiny card */
+.card {
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.18),
+        rgba(255, 255, 255, 0.05)
+    );
+
+    backdrop-filter: blur(14px);
+    border-radius: 18px;
+    padding: 30px 35px;
+    width: 350px;
+    margin: auto;
+
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.35),
+        inset 0 0 18px rgba(255, 255, 255, 0.15);
 }
 
 input {
-    display: block;
-    margin: 10px auto;
-    padding: 8px;
-    width: 220px;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+
+    border-radius: 8px;
+    border: none;
+    outline: none;
+
+    font-size: 15px;
 }
 
 button {
-    padding: 8px 15px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+
+    background: linear-gradient(135deg, #1cb5e0, #000851);
+    color: white;
+
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
+
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(28, 181, 224, 0.6);
+}
+
+#status {
+    margin-top: 15px;
+    color: white;
+    font-weight: bold;
+}
+
+#qrcode {
+    margin-top: 15px;
 }
