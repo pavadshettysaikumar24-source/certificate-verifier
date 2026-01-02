@@ -2,21 +2,29 @@
 <html>
 <head>
     <title>Admin – Upload Certificate</title>
+
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Admin Panel – Upload Certificate</h2>
+<div class="container">
+    <h1>Admin Panel – Upload Certificate</h1>
 
-<input id="name" placeholder="Student Name"><br><br>
-<input id="course" placeholder="Course"><br><br>
-<input id="year" placeholder="Year"><br><br>
+    <div class="card">
+        <input id="regno" placeholder="Registration Number">
+        <input id="name" placeholder="Student Name">
+        <input id="course" placeholder="Course">
+        <input id="year" placeholder="Year">
 
-<button onclick="upload()">Upload</button>
+        <button onclick="upload()">Upload Certificate</button>
 
-<p id="status"></p>
-<div id="qrcode"></div>
+        <p id="status"></p>
+        <div id="qrcode"></div>
+    </div>
+</div>
 
 <script src="script.js"></script>
 </body>
