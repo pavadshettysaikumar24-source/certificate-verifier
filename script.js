@@ -5,9 +5,9 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-// ✅ NORMALIZATION (CRITICAL)
-function normalize(name, course, year) {
-    return `${name.trim().toLowerCase()}|${course.trim().toLowerCase()}|${year.trim()}`;
+// ✅ NORMALIZATION (UPDATED)
+function normalize(regno, name, course, year) {
+    return `${regno.trim().toLowerCase()}|${name.trim().toLowerCase()}|${course.trim().toLowerCase()}|${year.trim()}`;
 }
 
 /* ================= ADMIN ================= */
@@ -18,16 +18,17 @@ async function upload() {
         return;
     }
 
-    const name = document.getElementById("name").value;
+    const regno  = document.getElementById("regno").value;
+    const name   = document.getElementById("name").value;
     const course = document.getElementById("course").value;
-    const year = document.getElementById("year").value;
+    const year   = document.getElementById("year").value;
 
-    if (!name || !course || !year) {
+    if (!regno || !name || !course || !year) {
         alert("Fill all fields");
         return;
     }
 
-    const certData = normalize(name, course, year);
+    const certData = normalize(regno, name, course, year);
     const hash = ethers.utils.keccak256(
         ethers.utils.toUtf8Bytes(certData)
     );
@@ -38,7 +39,8 @@ async function upload() {
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-    // ✅ WAIT FOR BLOCKCHAIN CONFIRMATION
+    document.getElementById("status").innerText = "⏳ Uploading to blockchain...";
+
     const tx = await contract.addCertificate(hash);
     await tx.wait();
 
@@ -55,42 +57,3 @@ async function upload() {
         height: 200
     });
 }
-
-/* ================= VERIFY ================= */
-async function autoVerify(hash) {
-    const provider = new ethers.providers.JsonRpcProvider(
-        "https://rpc.ankr.com/eth_sepolia"
-    );
-
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-
-    const result = document.getElementById("result");
-
-    // ✅ SHOW LOADING STATE HERE
-    result.innerText = "⏳ Verifying certificate...";
-    result.style.color = "black";
-
-    const valid = await contract.verifyCertificate(hash);
-
-    result.innerText = valid
-        ? "✅ Certificate is VALID"
-        : "❌ Certificate NOT FOUND";
-
-    result.style.color = valid ? "green" : "red";
-}
-
-// ✅ RUN AFTER PAGE LOAD
-window.addEventListener("load", () => {
-    const params = new URLSearchParams(window.location.search);
-    const hash = params.get("h");
-
-    if (hash) {
-        autoVerify(hash);
-      if (!ethers.utils.isHexString(hash, 32)) {
-    result.innerText = "❌ Invalid certificate hash";
-    result.style.color = "red";
-    return;
-}
-
-    }
-});
