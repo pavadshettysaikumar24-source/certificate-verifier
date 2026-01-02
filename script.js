@@ -57,16 +57,20 @@ async function upload() {
 }
 
 /* ================= VERIFY ================= */
-
 async function autoVerify(hash) {
     const provider = new ethers.providers.JsonRpcProvider(
         "https://rpc.ankr.com/eth_sepolia"
     );
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-    const valid = await contract.verifyCertificate(hash);
 
     const result = document.getElementById("result");
+
+    // ✅ SHOW LOADING STATE HERE
+    result.innerText = "⏳ Verifying certificate...";
+    result.style.color = "black";
+
+    const valid = await contract.verifyCertificate(hash);
 
     result.innerText = valid
         ? "✅ Certificate is VALID"
