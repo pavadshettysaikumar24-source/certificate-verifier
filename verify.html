@@ -1,14 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Verify Certificate</title>
+    <title>Certificate Verification</title>
+
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
+    <link rel="stylesheet" href="verify.css">
 </head>
 <body>
 
-<h2>Verify Certificate</h2>
-<p id="result">🔄 Verifying...</p>
+<div class="container">
+    <h1>Certificate Verification</h1>
 
-<script src="script.js"></script>
+    <div class="card">
+        <p class="subtitle">
+            Blockchain-based Certificate Authentication
+        </p>
+
+        <div id="result">
+            🔍 Waiting for certificate...
+        </div>
+    </div>
+</div>
+
+<script src="verify.js"></script>
 </body>
 </html>
