@@ -4,48 +4,30 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-const provider = new ethers.providers.JsonRpcProvider(
-  "https://rpc.ankr.com/eth_sepolia"
-);
+async function verify() {
+  try {
+    const hash = document.getElementById("hash").value.trim();
 
-const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-
-async function autoVerify() {
-    const hash = new URLSearchParams(window.location.search).get("h");
-    const status = document.getElementById("status");
-
-    if (!hash || !ethers.utils.isHexString(hash, 32)) {
-        status.innerText = "❌ Invalid QR / hash";
-        status.className = "error";
-        return;
+    if (!hash) {
+      alert("Enter certificate hash");
+      return;
     }
 
-    status.innerText = "🔎 Verifying certificate...";
-    status.className = "loading";
+    const provider = new ethers.providers.JsonRpcProvider(
+      "https://rpc.sepolia.org"
+    );
 
-    try {
-        const [valid, cid] = await contract.verifyCertificate(hash);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-        if (valid) {
-            status.innerHTML = `
-              ✅ Certificate VERIFIED<br><br>
-              <a href="https://gateway.pinata.cloud/ipfs/${cid}" 
-                 target="_blank" 
-                 rel="noopener noreferrer">
-                📄 View Certificate PDF
-              </a>
-            `;
-            status.className = "success";
-        } else {
-            status.innerText = "❌ Certificate not found";
-            status.className = "error";
-        }
+    const result = await contract.verifyCertificate(hash);
 
-    } catch (e) {
-        console.error(e);
-        status.innerText = "❌ Blockchain connection error";
-        status.className = "error";
-    }
+    document.getElementById("result").innerText =
+      result[0]
+        ? "✅ Certificate is VALID\nCID: " + result[1]
+        : "❌ Certificate NOT found";
+
+  } catch (err) {
+    console.error(err);
+    alert("Blockchain connection error");
+  }
 }
-
-autoVerify();
