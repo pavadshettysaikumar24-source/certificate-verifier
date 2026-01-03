@@ -16,11 +16,11 @@ async function upload() {
       return;
     }
 
-    const regno  = document.getElementById("regno").value;
-    const name   = document.getElementById("name").value;
-    const course = document.getElementById("course").value;
-    const year   = document.getElementById("year").value;
-    const cid    = document.getElementById("cid").value;
+    const regno  = document.getElementById("regno").value.trim();
+    const name   = document.getElementById("name").value.trim();
+    const course = document.getElementById("course").value.trim();
+    const year   = document.getElementById("year").value.trim();
+    const cid    = document.getElementById("cid").value.trim();
 
     const status = document.getElementById("status");
     const qrcode = document.getElementById("qrcode");
@@ -30,6 +30,7 @@ async function upload() {
       return;
     }
 
+    // 🔐 AUTO-GENERATED HASH (ADMIN ONLY)
     const hash = ethers.utils.keccak256(
       ethers.utils.toUtf8Bytes(normalize(regno, name, course, year))
     );
@@ -52,14 +53,24 @@ async function upload() {
 
     status.innerText = "✅ Certificate uploaded successfully";
 
+    // ✅ AUTOMATED VERIFY URL (NO HASH IN QR)
     const verifyURL =
-      `https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html?h=${hash}`;
+      `https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html` +
+      `?regno=${encodeURIComponent(regno)}` +
+      `&name=${encodeURIComponent(name)}` +
+      `&course=${encodeURIComponent(course)}` +
+      `&year=${encodeURIComponent(year)}`;
 
     qrcode.innerHTML = "";
-    new QRCode(qrcode, { text: verifyURL, width: 200 });
+    new QRCode(qrcode, {
+      text: verifyURL,
+      width: 200,
+      height: 200
+    });
 
   } catch (err) {
     console.error(err);
     alert("Upload failed — check console");
   }
 }
+
