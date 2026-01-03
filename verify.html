@@ -1,48 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Certificate Verification</title>
+  <meta charset="UTF-8">
+  <title>Certificate Verification</title>
 
-    <!-- MUST load ethers first -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-
-    <link rel="stylesheet" href="verify.css">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="card">
-    <h1>🎓 Certificate Verification</h1>
+<div class="container">
+  <h1>🎓 Certificate Verification</h1>
 
-    <p id="status" class="loading">
-        🌐 Connecting to blockchain...
-    </p>
+  <div class="card">
+    <p id="conn">🔄 Connecting to blockchain...</p>
 
-    <!-- Certificate info -->
-    <div id="details" class="hidden">
-        <p><strong>Network:</strong> Ethereum Sepolia</p>
-        <p><strong>Verification:</strong> On-Chain Smart Contract</p>
-        <p><strong>Security:</strong> SHA-256 / Keccak Hash</p>
-        <p><strong>Immutability:</strong> Tamper-Proof</p>
-    </div>
+    <input id="hash" placeholder="Paste certificate hash here">
+    <button onclick="verify()">Verify Certificate</button>
 
-    <!-- 🔗 Manual verify link -->
-    <div class="manual">
-        <p class="hint">Didn’t scan a QR code?</p>
-        <input
-            type="text"
-            id="manualHash"
-            placeholder="Paste certificate hash here"
-        >
-        <button onclick="manualVerify()">Verify Certificate</button>
-    </div>
-
-    <footer>
-        Powered by Blockchain • Public • Trustless
-    </footer>
+    <p id="result"></p>
+    <a id="pdf" target="_blank"></a>
+  </div>
 </div>
 
-<!-- Load verify logic AFTER DOM -->
 <script src="verify.js"></script>
 </body>
 </html>
