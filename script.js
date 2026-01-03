@@ -5,37 +5,25 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-// 🔐 Paste ONLY JWT here
-const PINATA_JWT = "ac7b8bf7e72e4d6bb648f09f31423642";
-
 // Normalize data
 function normalize(regno, name, course, year) {
   return `${regno}|${name}|${course}|${year}`.toLowerCase().trim();
 }
 
-// ✅ Upload PDF to IPFS (JWT-based)
+// ✅ NFT.Storage upload (WORKS on GitHub Pages)
 async function uploadToIPFS(file) {
-  const formData = new FormData();
-  formData.append("file", file);
+  const res = await fetch("https://api.nft.storage/upload", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer 57542bbb.e7fb5f49386a4374809a2f6cd88a7f6c"
+    },
+    body: file
+  });
 
-  const res = await fetch(
-    "https://api.pinata.cloud/pinning/pinFileToIPFS",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${PINATA_JWT}`
-      },
-      body: formData
-    }
-  );
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text);
-  }
+  if (!res.ok) throw new Error("NFT.Storage upload failed");
 
   const data = await res.json();
-  return data.IpfsHash;
+  return data.value.cid;
 }
 
 async function upload() {
