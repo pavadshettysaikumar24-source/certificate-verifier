@@ -4,40 +4,39 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-async function autoVerify(hash) {
+async function autoVerify() {
     try {
+        const params = new URLSearchParams(window.location.search);
+        const hash = params.get("h");
+
+        if (!hash) {
+            document.getElementById("result").innerText = "❌ Invalid QR Code";
+            return;
+        }
+
+        // ✅ PUBLIC RPC (NO METAMASK)
         const provider = new ethers.providers.JsonRpcProvider(
             "https://rpc.ankr.com/eth_sepolia"
         );
 
-        const contract = new ethers.Contract(
-            CONTRACT_ADDRESS,
-            ABI,
-            provider
-        );
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-        const valid = await contract.verifyCertificate(hash);
+        const isValid = await contract.verifyCertificate(hash);
 
         const result = document.getElementById("result");
 
-        if (valid) {
+        if (isValid) {
             result.innerText = "✅ Certificate is VALID";
-            result.style.color = "lightgreen";
+            result.style.color = "lime";
         } else {
             result.innerText = "❌ Certificate NOT FOUND";
             result.style.color = "red";
         }
     } catch (err) {
+        console.error(err);
         document.getElementById("result").innerText =
             "⚠ Blockchain connection error";
-        console.error(err);
     }
 }
 
-// Auto verify when QR opens page
-const params = new URLSearchParams(window.location.search);
-const hashFromQR = params.get("h");
-
-if (hashFromQR) {
-    autoVerify(hashFromQR);
-}
+autoVerify();
