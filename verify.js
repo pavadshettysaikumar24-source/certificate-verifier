@@ -4,50 +4,37 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-// 🔹 READ-ONLY PROVIDER (NO METAMASK)
+// Public RPC – NO MetaMask needed
 const provider = new ethers.providers.JsonRpcProvider(
-  "https://sepolia.infura.io/v3/YOUR_INFURA_API_KEY"
+  "https://rpc.ankr.com/eth_sepolia"
 );
 
 const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-document.getElementById("conn").innerText = "✅ Connected to Sepolia blockchain";
-
 async function verify() {
-  try {
-    const hash = document.getElementById("hash").value.trim();
-    const result = document.getElementById("result");
-    const pdf = document.getElementById("pdf");
+  const input = document.getElementById("hash").value.trim();
+  const status = document.getElementById("status");
 
-    if (!hash.startsWith("0x") || hash.length !== 66) {
-      result.innerText = "❌ Invalid hash format";
-      return;
-    }
-
-    result.innerText = "🔍 Verifying...";
-    pdf.innerText = "";
-
-    const [valid, cid] = await contract.verifyCertificate(hash);
-
-    if (!valid) {
-      result.innerText = "❌ Certificate NOT found";
-      return;
-    }
-
-    result.innerText = "✅ Certificate VERIFIED";
-    pdf.href = `https://ipfs.io/ipfs/${cid}`;
-    pdf.innerText = "📄 View Certificate PDF";
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("result").innerText =
-      "❌ Blockchain read error";
+  if (!ethers.utils.isHexString(input, 32)) {
+    status.innerText = "❌ Invalid certificate hash";
+    return;
   }
-}
 
-// 🔹 Auto-fill hash from QR
-const params = new URLSearchParams(window.location.search);
-if (params.get("h")) {
-  document.getElementById("hash").value = params.get("h");
-  verify();
+  try {
+    const [valid, cid] = await contract.verifyCertificate(input);
+
+    if (valid) {
+      status.innerHTML = `
+        ✅ Certificate VERIFIED<br><br>
+        <a href="https://gateway.pinata.cloud/ipfs/${cid}" target="_blank">
+          📄 View Certificate PDF
+        </a>
+      `;
+    } else {
+      status.innerText = "❌ Certificate not found";
+    }
+  } catch (e) {
+    console.error(e);
+    status.innerText = "❌ Blockchain read error";
+  }
 }
