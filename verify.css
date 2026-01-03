@@ -1,53 +1,46 @@
-* {
-    box-sizing: border-box;
-}
-
 body {
-    margin: 0;
-    height: 100vh;
-    font-family: "Segoe UI", Arial, sans-serif;
-
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.container {
-    text-align: center;
-    width: 100%;
-}
-
-h1 {
-    font-size: clamp(2.2rem, 4vw, 3.2rem);
-    color: #ffffff;
-    margin-bottom: 25px;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  font-family: "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
 }
 
 .card {
-    background: linear-gradient(
-        145deg,
-        rgba(255, 255, 255, 0.18),
-        rgba(255, 255, 255, 0.05)
-    );
-
-    backdrop-filter: blur(14px);
-    border-radius: 18px;
-    padding: 40px;
-    width: 360px;
-    margin: auto;
-
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.35),
-        inset 0 0 18px rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.25);
 }
 
-#result {
-    font-size: 20px;
-    font-weight: bold;
-    padding: 20px;
+h1 {
+  margin-bottom: 15px;
+}
 
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
+.loading {
+  color: #555;
+}
+
+.success {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.error {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.details p {
+  margin: 6px 0;
+}
+
+.footer {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #777;
 }
