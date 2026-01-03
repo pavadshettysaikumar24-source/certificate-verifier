@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Certificate Verification</title>
+    <meta charset="UTF-8">
+    <title>Certificate Verification</title>
 
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-<link rel="stylesheet" href="verify.css">
+    <!-- Ethers MUST load first -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
+    <link rel="stylesheet" href="verify.css">
 </head>
 <body>
 
 <div class="card">
-  <h1>🎓 Certificate Verification</h1>
+    <h1>🎓 Certificate Verification</h1>
 
-  <p id="status" class="loading">🔍 Verifying certificate…</p>
+    <p id="status" class="loading">
+        🌐 Connecting to blockchain...
+    </p>
 
-  <div id="result" class="details"></div>
+    <div id="details" class="hidden">
+        <p><strong>Network:</strong> Sepolia Testnet</p>
+        <p><strong>Contract:</strong> Verified On-Chain</p>
+        <p><strong>Security:</strong> Tamper-Proof Hash</p>
+    </div>
 
-  <div class="footer">
-    <p>Powered by Blockchain • Tamper-Proof • Publicly Verifiable</p>
-  </div>
+    <footer>
+        Powered by Blockchain • Public • Trustless
+    </footer>
 </div>
 
+<!-- Load verify.js AFTER page -->
 <script src="verify.js"></script>
 </body>
 </html>
