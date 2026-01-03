@@ -41,7 +41,7 @@ async function autoVerify() {
 
     // ✅ CORRECT: Ethereum Sepolia RPC (NO METAMASK)
     const provider = new ethers.providers.JsonRpcProvider(
-      "https://rpc.sepolia.org"
+      "https://eth-sepolia.g.alchemy.com/v2/demo"
     );
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
