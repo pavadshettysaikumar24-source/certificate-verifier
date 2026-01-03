@@ -4,30 +4,50 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
+// 🔹 READ-ONLY PROVIDER (NO METAMASK)
+const provider = new ethers.providers.JsonRpcProvider(
+  "https://sepolia.infura.io/v3/YOUR_INFURA_API_KEY"
+);
+
+const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+document.getElementById("conn").innerText = "✅ Connected to Sepolia blockchain";
+
 async function verify() {
   try {
     const hash = document.getElementById("hash").value.trim();
+    const result = document.getElementById("result");
+    const pdf = document.getElementById("pdf");
 
-    if (!hash) {
-      alert("Enter certificate hash");
+    if (!hash.startsWith("0x") || hash.length !== 66) {
+      result.innerText = "❌ Invalid hash format";
       return;
     }
 
-    const provider = new ethers.providers.JsonRpcProvider(
-      "https://rpc.sepolia.org"
-    );
+    result.innerText = "🔍 Verifying...";
+    pdf.innerText = "";
 
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+    const [valid, cid] = await contract.verifyCertificate(hash);
 
-    const result = await contract.verifyCertificate(hash);
+    if (!valid) {
+      result.innerText = "❌ Certificate NOT found";
+      return;
+    }
 
-    document.getElementById("result").innerText =
-      result[0]
-        ? "✅ Certificate is VALID\nCID: " + result[1]
-        : "❌ Certificate NOT found";
+    result.innerText = "✅ Certificate VERIFIED";
+    pdf.href = `https://ipfs.io/ipfs/${cid}`;
+    pdf.innerText = "📄 View Certificate PDF";
 
   } catch (err) {
     console.error(err);
-    alert("Blockchain connection error");
+    document.getElementById("result").innerText =
+      "❌ Blockchain read error";
   }
+}
+
+// 🔹 Auto-fill hash from QR
+const params = new URLSearchParams(window.location.search);
+if (params.get("h")) {
+  document.getElementById("hash").value = params.get("h");
+  verify();
 }
