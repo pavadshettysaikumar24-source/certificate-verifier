@@ -5,19 +5,6 @@ const ABI = [
 ];
 
 async function autoVerify(hash) {
-    const result = document.getElementById("result");
-
-    // ❌ Validate hash BEFORE blockchain call
-    if (!ethers.utils.isHexString(hash, 32)) {
-        result.innerText = "❌ Invalid certificate link";
-        result.style.color = "red";
-        return;
-    }
-
-    // ⏳ Loading state
-    result.innerText = "⏳ Verifying certificate...";
-    result.style.color = "#000";
-
     try {
         const provider = new ethers.providers.JsonRpcProvider(
             "https://rpc.ankr.com/eth_sepolia"
@@ -31,24 +18,26 @@ async function autoVerify(hash) {
 
         const valid = await contract.verifyCertificate(hash);
 
-        result.innerText = valid
-            ? "✅ Certificate is AUTHENTIC"
-            : "❌ Certificate NOT FOUND";
+        const result = document.getElementById("result");
 
-        result.style.color = valid ? "green" : "red";
-
-    } catch (error) {
-        console.error(error);
-        result.innerText = "⚠️ Blockchain connection error";
-        result.style.color = "orange";
+        if (valid) {
+            result.innerText = "✅ Certificate is VALID";
+            result.style.color = "lightgreen";
+        } else {
+            result.innerText = "❌ Certificate NOT FOUND";
+            result.style.color = "red";
+        }
+    } catch (err) {
+        document.getElementById("result").innerText =
+            "⚠ Blockchain connection error";
+        console.error(err);
     }
 }
 
-window.addEventListener("load", () => {
-    const params = new URLSearchParams(window.location.search);
-    const hash = params.get("h");
+// Auto verify when QR opens page
+const params = new URLSearchParams(window.location.search);
+const hashFromQR = params.get("h");
 
-    if (hash) {
-        autoVerify(hash);
-    }
-});
+if (hashFromQR) {
+    autoVerify(hashFromQR);
+}
