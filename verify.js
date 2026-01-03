@@ -1,6 +1,6 @@
 window.addEventListener("load", async () => {
 
-    const CONTRACT_ADDRESS = "0x8C6073365b8971626dcaeBA4D76FcD0975520858";
+    const CONTRACT_ADDRESS = "0xFF0F56b3dC88C506E92B21696fDc95ABd2DD397a";
 
     const ABI = [
         "function verifyCertificate(bytes32 hash) public view returns (bool)"
