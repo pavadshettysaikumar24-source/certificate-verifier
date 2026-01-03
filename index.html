@@ -3,7 +3,8 @@
 <head>
     <title>Admin – Upload Certificate</title>
 
-   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- Blockchain libs -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
     <link rel="stylesheet" href="style.css">
@@ -18,6 +19,16 @@
         <input id="name" placeholder="Student Name">
         <input id="course" placeholder="Course">
         <input id="year" placeholder="Year">
+
+        <!-- ✅ PDF Upload -->
+        <input 
+            type="file" 
+            id="pdf" 
+            accept="application/pdf"
+        >
+        <small style="opacity:0.8;">
+            Upload certificate PDF (required)
+        </small>
 
         <button onclick="upload()">Upload Certificate</button>
 
