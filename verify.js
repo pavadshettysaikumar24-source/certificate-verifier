@@ -14,11 +14,14 @@ async function autoVerify() {
     const hash = new URLSearchParams(window.location.search).get("h");
     const status = document.getElementById("status");
 
-    if (!hash) {
-        status.innerText = "❌ Invalid QR";
+    if (!hash || !ethers.utils.isHexString(hash, 32)) {
+        status.innerText = "❌ Invalid QR / hash";
         status.className = "error";
         return;
     }
+
+    status.innerText = "🔎 Verifying certificate...";
+    status.className = "loading";
 
     try {
         const [valid, cid] = await contract.verifyCertificate(hash);
@@ -26,7 +29,9 @@ async function autoVerify() {
         if (valid) {
             status.innerHTML = `
               ✅ Certificate VERIFIED<br><br>
-              <a href="https://gateway.pinata.cloud/ipfs/${cid}" target="_blank">
+              <a href="https://gateway.pinata.cloud/ipfs/${cid}" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
                 📄 View Certificate PDF
               </a>
             `;
