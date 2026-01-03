@@ -5,17 +5,12 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-// ================= NORMALIZE =================
+// Normalize
 function normalize(regno, name, course, year) {
-    return [
-        regno.trim().toLowerCase(),
-        name.trim().toLowerCase(),
-        course.trim().toLowerCase(),
-        year.trim()
-    ].join("|");
+    return `${regno}|${name}|${course}|${year}`.toLowerCase().trim();
 }
 
-// ================= IPFS UPLOAD (PINATA JWT) =================
+// Upload PDF to IPFS (Pinata)
 async function uploadToIPFS(file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -23,7 +18,8 @@ async function uploadToIPFS(file) {
     const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
         method: "POST",
         headers: {
-            Authorization: "Bearer YOUR_PINATA_JWT"
+            pinata_api_key: "PASTE_REAL_KEY",
+            pinata_secret_api_key: "PASTE_REAL_SECRET"
         },
         body: formData
     });
@@ -34,7 +30,6 @@ async function uploadToIPFS(file) {
     return data.IpfsHash;
 }
 
-// ================= ADMIN UPLOAD =================
 async function upload() {
     try {
         if (!window.ethereum) {
@@ -42,6 +37,7 @@ async function upload() {
             return;
         }
 
+        // ✅ FIXED DOM ACCESS
         const regno  = document.getElementById("regno").value;
         const name   = document.getElementById("name").value;
         const course = document.getElementById("course").value;
@@ -60,9 +56,7 @@ async function upload() {
         const cid = await uploadToIPFS(pdf);
 
         const hash = ethers.utils.keccak256(
-            ethers.utils.toUtf8Bytes(
-                normalize(regno, name, course, year)
-            )
+            ethers.utils.toUtf8Bytes(normalize(regno, name, course, year))
         );
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -71,18 +65,11 @@ async function upload() {
 
         const network = await provider.getNetwork();
         if (network.chainId !== 11155111) {
-            alert("Please switch MetaMask to Sepolia");
+            alert("Switch MetaMask to Sepolia");
             return;
         }
 
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-
-        // ⛔ Prevent duplicates
-        const [exists] = await contract.verifyCertificate(hash);
-        if (exists) {
-            alert("Certificate already exists");
-            return;
-        }
 
         status.innerText = "⛓️ Writing to blockchain...";
         const tx = await contract.addCertificate(hash, cid);
@@ -94,11 +81,7 @@ async function upload() {
           `https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html?h=${hash}`;
 
         qrcode.innerHTML = "";
-        new QRCode(qrcode, {
-            text: verifyURL,
-            width: 200,
-            height: 200
-        });
+        new QRCode(qrcode, { text: verifyURL, width: 200 });
 
     } catch (err) {
         console.error(err);
