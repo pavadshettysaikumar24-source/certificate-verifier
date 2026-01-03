@@ -46,7 +46,14 @@ async function autoVerify() {
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-    const [valid, cid] = await contract.verifyCertificate(hash);
+   const call = contract.verifyCertificate(hash);
+
+const timeout = new Promise((_, reject) =>
+  setTimeout(() => reject(new Error("RPC timeout")), 12000)
+);
+
+
+const [valid, cid] = await Promise.race([call, timeout]);
 
     if (valid) {
       conn.innerText = "✅ Certificate Verified";
