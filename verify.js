@@ -4,7 +4,6 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-// SAME normalize function (VERY IMPORTANT)
 function normalize(regno, name, course, year) {
   return `${regno}|${name}|${course}|${year}`.toLowerCase().trim();
 }
@@ -40,9 +39,9 @@ async function autoVerify() {
       ethers.utils.toUtf8Bytes(normalize(regno, name, course, year))
     );
 
-    // 🔗 Read-only provider (NO METAMASK)
+    // ✅ CORRECT: Ethereum Sepolia RPC (NO METAMASK)
     const provider = new ethers.providers.JsonRpcProvider(
-      "https://app.pinata.cloud/ipfs/files"
+      "https://rpc.sepolia.org"
     );
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
