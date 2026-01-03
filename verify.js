@@ -42,7 +42,7 @@ async function autoVerify() {
 
     // 🔗 Read-only provider (NO METAMASK)
     const provider = new ethers.providers.JsonRpcProvider(
-      "https://sepolia.infura.io/v3/YOUR_INFURA_KEY"
+      "https://app.pinata.cloud/ipfs/files"
     );
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
