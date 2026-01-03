@@ -1,35 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin – Upload Certificate</title>
+<meta charset="UTF-8">
+<title>Admin – Upload Certificate</title>
 
-    <!-- Ethers & QR -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
-    <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-
 <div class="container">
-    <h1>Admin Panel – Upload Certificate</h1>
+<h1>Admin Panel – Upload Certificate</h1>
 
-    <div class="card">
-        <input id="regno" placeholder="Registration Number">
-        <input id="name" placeholder="Student Name">
-        <input id="course" placeholder="Course">
-        <input id="year" placeholder="Year">
+<div class="card">
+<input id="regno" placeholder="Registration Number">
+<input id="name" placeholder="Student Name">
+<input id="course" placeholder="Course">
+<input id="year" placeholder="Year">
 
-        <!-- ✅ PDF Upload -->
-        <input id="cid" placeholder="Paste IPFS CID here">
+<input id="cid" placeholder="Paste IPFS CID here">
 
+<button onclick="upload()">Upload Certificate</button>
 
-        <button onclick="upload()">Upload Certificate</button>
-
-        <p id="status"></p>
-        <div id="qrcode"></div>
-    </div>
+<p id="status"></p>
+<div id="qrcode"></div>
+</div>
 </div>
 
 <script src="script.js"></script>
