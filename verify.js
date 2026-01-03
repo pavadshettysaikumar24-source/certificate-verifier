@@ -46,7 +46,7 @@ async function autoVerify() {
     conn.innerText = "🔎 Connecting to Sepolia...";
 
     const RPCS = [
-      "https://eth-mainnet.g.alchemy.com/v2/SEP93iGt-lujY2OZ8ymTI",
+      "https://eth-mainnet.g.alchemy.com/v2/s-xSCKKUiXsO-PohwgomU",
        ];
 
     let provider;
