@@ -4,23 +4,33 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-// Wait until page loads
 window.addEventListener("load", async () => {
   const result = document.getElementById("result");
 
   try {
+    result.innerText = "⏳ Initializing...";
+
+    console.log("Ethers version:", ethers.version);
+
     const params = new URLSearchParams(window.location.search);
     const hash = params.get("h");
 
     if (!hash) {
-      result.innerText = "❌ Invalid QR code";
-      return;
+      throw new Error("Hash missing in URL");
     }
 
-    // ✅ Stable public RPC
+    console.log("Hash:", hash);
+
+    result.innerText = "🌐 Connecting to RPC...";
+
     const provider = new ethers.providers.JsonRpcProvider(
-      "https://eth-sepolia.public.blastapi.io"
+      "https://rpc.sepolia.org"
     );
+
+    await provider.getBlockNumber(); // 🔥 FORCE connection test
+    console.log("RPC connected");
+
+    result.innerText = "📜 Loading contract...";
 
     const contract = new ethers.Contract(
       CONTRACT_ADDRESS,
@@ -28,19 +38,19 @@ window.addEventListener("load", async () => {
       provider
     );
 
+    result.innerText = "🔍 Verifying certificate...";
+
     const isValid = await contract.verifyCertificate(hash);
 
-    if (isValid) {
-      result.innerText = "✅ Certificate is VALID";
-      result.style.color = "lime";
-    } else {
-      result.innerText = "❌ Certificate NOT FOUND";
-      result.style.color = "red";
-    }
+    console.log("Verification result:", isValid);
+
+    result.innerText = isValid
+      ? "✅ Certificate is VALID"
+      : "❌ Certificate NOT FOUND";
 
   } catch (err) {
-    console.error(err);
-    result.innerText = "❌ Blockchain connection error";
-    result.style.color = "orange";
+    console.error("FULL ERROR:", err);
+    result.innerText = "❌ ERROR: " + err.message;
+    result.style.color = "red";
   }
 });
