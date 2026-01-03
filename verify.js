@@ -1,3 +1,8 @@
+if (typeof ethers === "undefined") {
+  alert("Ethers.js not loaded");
+  throw new Error("Ethers.js not loaded");
+}
+
 const CONTRACT_ADDRESS = "0x6B0AA29aA991A81A417F62aD3d4278bDDA8B4c1f";
 
 const ABI = [
@@ -34,26 +39,37 @@ async function autoVerify() {
       <b>Year:</b> ${year}
     `;
 
-    // 🔐 AUTO HASH
     const hash = ethers.utils.keccak256(
       ethers.utils.toUtf8Bytes(normalize(regno, name, course, year))
     );
 
-    // ✅ CORRECT: Ethereum Sepolia RPC (NO METAMASK)
-    const provider = new ethers.providers.JsonRpcProvider(
-      "https://eth-sepolia.g.alchemy.com/v2/demo"
-    );
+    conn.innerText = "🔎 Connecting to Sepolia...";
+
+    const RPCS = [
+      "https://eth-sepolia.g.alchemy.com/v2/demo",
+      "https://rpc.sepolia.org",
+      "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+    ];
+
+    let provider;
+    for (const url of RPCS) {
+      try {
+        provider = new ethers.providers.JsonRpcProvider(url);
+        await provider.getBlockNumber();
+        break;
+      } catch {}
+    }
+
+    if (!provider) throw new Error("RPC unavailable");
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
-   const call = contract.verifyCertificate(hash);
+    const call = contract.verifyCertificate(hash);
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("RPC timeout")), 12000)
+    );
 
-const timeout = new Promise((_, reject) =>
-  setTimeout(() => reject(new Error("RPC timeout")), 12000)
-);
-
-
-const [valid, cid] = await Promise.race([call, timeout]);
+    const [valid, cid] = await Promise.race([call, timeout]);
 
     if (valid) {
       conn.innerText = "✅ Certificate Verified";
@@ -72,3 +88,4 @@ const [valid, cid] = await Promise.race([call, timeout]);
 }
 
 autoVerify();
+
