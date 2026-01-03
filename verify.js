@@ -4,37 +4,65 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-// Public RPC – NO MetaMask needed
-const provider = new ethers.providers.JsonRpcProvider(
-  "https://rpc.ankr.com/eth_sepolia"
-);
+// SAME normalize function (VERY IMPORTANT)
+function normalize(regno, name, course, year) {
+  return `${regno}|${name}|${course}|${year}`.toLowerCase().trim();
+}
 
-const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-
-async function verify() {
-  const input = document.getElementById("hash").value.trim();
-  const status = document.getElementById("status");
-
-  if (!ethers.utils.isHexString(input, 32)) {
-    status.innerText = "❌ Invalid certificate hash";
-    return;
-  }
+async function autoVerify() {
+  const conn = document.getElementById("conn");
+  const result = document.getElementById("result");
+  const pdf = document.getElementById("pdf");
+  const details = document.getElementById("details");
 
   try {
-    const [valid, cid] = await contract.verifyCertificate(input);
+    const params = new URLSearchParams(window.location.search);
+
+    const regno  = params.get("regno");
+    const name   = params.get("name");
+    const course = params.get("course");
+    const year   = params.get("year");
+
+    if (!regno || !name || !course || !year) {
+      conn.innerText = "❌ Invalid QR code";
+      return;
+    }
+
+    details.innerHTML = `
+      <b>Reg No:</b> ${regno}<br>
+      <b>Name:</b> ${name}<br>
+      <b>Course:</b> ${course}<br>
+      <b>Year:</b> ${year}
+    `;
+
+    // 🔐 AUTO HASH
+    const hash = ethers.utils.keccak256(
+      ethers.utils.toUtf8Bytes(normalize(regno, name, course, year))
+    );
+
+    // 🔗 Read-only provider (NO METAMASK)
+    const provider = new ethers.providers.JsonRpcProvider(
+      "https://sepolia.infura.io/v3/YOUR_INFURA_KEY"
+    );
+
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+    const [valid, cid] = await contract.verifyCertificate(hash);
 
     if (valid) {
-      status.innerHTML = `
-        ✅ Certificate VERIFIED<br><br>
-        <a href="https://gateway.pinata.cloud/ipfs/${cid}" target="_blank">
-          📄 View Certificate PDF
-        </a>
-      `;
+      conn.innerText = "✅ Certificate Verified";
+      result.innerHTML = "🟢 <b>VALID CERTIFICATE</b>";
+      pdf.href = `https://ipfs.io/ipfs/${cid}`;
+      pdf.innerText = "📄 View Certificate PDF";
     } else {
-      status.innerText = "❌ Certificate not found";
+      conn.innerText = "❌ Verification Failed";
+      result.innerHTML = "🔴 <b>INVALID CERTIFICATE</b>";
     }
-  } catch (e) {
-    console.error(e);
-    status.innerText = "❌ Blockchain read error";
+
+  } catch (err) {
+    console.error(err);
+    conn.innerText = "❌ Error connecting to blockchain";
   }
 }
+
+autoVerify();
