@@ -1,21 +1,16 @@
-const CONTRACT_ADDRESS = "0xFF0F56b3dC88C506E92B21696fDc95ABd2DD397a";
+const CONTRACT_ADDRESS = "0x6B0AA29aA991A81A417F62aD3d4278bDDA8B4c1f";
 
 const ABI = [
   "function addCertificate(bytes32 hash, string cid) public",
-  "function verifyCertificate(bytes32 hash) public view returns (bool)"
+  "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-// ================= NORMALIZATION =================
+// Normalize
 function normalize(regno, name, course, year) {
-    return [
-        regno.trim().toLowerCase(),
-        name.trim().toLowerCase(),
-        course.trim().toLowerCase(),
-        year.trim()
-    ].join("|");
+    return `${regno}|${name}|${course}|${year}`.toLowerCase().trim();
 }
 
-// ================= IPFS UPLOAD =================
+// Upload to IPFS (Pinata example)
 async function uploadToIPFS(file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -23,7 +18,7 @@ async function uploadToIPFS(file) {
     const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
         method: "POST",
         headers: {
-            pinata_api_key: "YOUR_PINATA_API_KEY",
+            pinata_api_key: "YOUR_PINATA_KEY",
             pinata_secret_api_key: "YOUR_PINATA_SECRET"
         },
         body: formData
@@ -33,7 +28,6 @@ async function uploadToIPFS(file) {
     return data.IpfsHash;
 }
 
-// ================= ADMIN UPLOAD =================
 async function upload() {
     try {
         if (!window.ethereum) {
@@ -41,25 +35,22 @@ async function upload() {
             return;
         }
 
-        const regno  = regno.value;
-        const name   = name.value;
+        const regno = regno.value;
+        const name = name.value;
         const course = course.value;
-        const year   = year.value;
-        const pdf    = document.getElementById("pdf").files[0];
+        const year = year.value;
+        const pdf = document.getElementById("pdf").files[0];
 
         if (!regno || !name || !course || !year || !pdf) {
-            alert("Fill all fields & upload PDF");
+            alert("All fields + PDF required");
             return;
         }
 
-        const status = document.getElementById("status");
         status.innerText = "📤 Uploading PDF to IPFS...";
-
         const cid = await uploadToIPFS(pdf);
 
-        const certData = normalize(regno, name, course, year);
         const hash = ethers.utils.keccak256(
-            ethers.utils.toUtf8Bytes(certData)
+            ethers.utils.toUtf8Bytes(normalize(regno, name, course, year))
         );
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -68,7 +59,7 @@ async function upload() {
 
         const network = await provider.getNetwork();
         if (network.chainId !== 11155111) {
-            alert("Switch MetaMask to Sepolia");
+            alert("Switch to Sepolia");
             return;
         }
 
@@ -78,13 +69,13 @@ async function upload() {
         const tx = await contract.addCertificate(hash, cid);
         await tx.wait();
 
-        status.innerText = "✅ Certificate uploaded successfully";
+        status.innerText = "✅ Certificate uploaded";
 
         const verifyURL =
-            `https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html?h=${hash}`;
+          `https://pavadshettysaikumar24-source.github.io/certificate-verifier/verify.html?h=${hash}`;
 
-        document.getElementById("qrcode").innerHTML = "";
-        new QRCode(qrcode, { text: verifyURL, width: 200, height: 200 });
+        qrcode.innerHTML = "";
+        new QRCode(qrcode, { text: verifyURL, width: 200 });
 
     } catch (err) {
         console.error(err);
