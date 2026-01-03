@@ -4,40 +4,43 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-// ✅ CLOUDFARE PUBLIC RPC (MOST STABLE)
-const provider = new ethers.providers.JsonRpcProvider(
-  "https://sepolia.infura.io/v3/84842078b09946638c03157f83405213"
-);
-
-const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-
-async function autoVerify() {
-  const params = new URLSearchParams(window.location.search);
-  const hash = params.get("h");
-
+// Wait until page loads
+window.addEventListener("load", async () => {
   const result = document.getElementById("result");
 
-  if (!hash || !hash.startsWith("0x")) {
-    result.innerText = "❌ Invalid QR code";
-    result.style.color = "red";
-    return;
-  }
-
   try {
-    const valid = await contract.verifyCertificate(hash);
+    const params = new URLSearchParams(window.location.search);
+    const hash = params.get("h");
 
-    if (valid) {
+    if (!hash) {
+      result.innerText = "❌ Invalid QR code";
+      return;
+    }
+
+    // ✅ Stable public RPC
+    const provider = new ethers.providers.JsonRpcProvider(
+      "https://eth-sepolia.public.blastapi.io"
+    );
+
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      ABI,
+      provider
+    );
+
+    const isValid = await contract.verifyCertificate(hash);
+
+    if (isValid) {
       result.innerText = "✅ Certificate is VALID";
-      result.style.color = "green";
+      result.style.color = "lime";
     } else {
       result.innerText = "❌ Certificate NOT FOUND";
       result.style.color = "red";
     }
+
   } catch (err) {
     console.error(err);
     result.innerText = "❌ Blockchain connection error";
-    result.style.color = "red";
+    result.style.color = "orange";
   }
-}
-
-window.addEventListener("load", autoVerify);
+});
