@@ -1,55 +1,56 @@
-const CONTRACT_ADDRESS = "0x8C6073365b8971626dcaeBA4D76FcD0975520858";
+window.addEventListener("load", async () => {
 
-const ABI = [
-  "function verifyCertificate(bytes32 hash) public view returns (bool)"
-];
+    const CONTRACT_ADDRESS = "0x8C6073365b8971626dcaeBA4D76FcD0975520858";
 
-// ✅ Highly reliable public RPC (mobile-safe)
-const provider = new ethers.providers.JsonRpcProvider(
-  "https://cloudflare-eth.com"
-);
+    const ABI = [
+        "function verifyCertificate(bytes32 hash) public view returns (bool)"
+    ];
 
-const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+    const status = document.getElementById("status");
+    const details = document.getElementById("details");
 
-async function autoVerify() {
-  const params = new URLSearchParams(window.location.search);
-  const hash = params.get("h");
+    try {
+        if (typeof ethers === "undefined") {
+            throw new Error("Ethers failed to load");
+        }
 
-  const result = document.getElementById("result");
-  const status = document.getElementById("status");
+        status.innerText = "🔗 Connecting to Sepolia RPC...";
 
-  if (!hash || !hash.startsWith("0x")) {
-    status.innerText = "❌ Invalid QR Code";
-    status.className = "error";
-    return;
-  }
+        const provider = new ethers.providers.JsonRpcProvider(
+            "https://rpc.ankr.com/eth_sepolia"
+        );
 
-  try {
-    status.innerText = "🌐 Connecting to blockchain...";
-    
-    // ⏳ small delay to avoid mobile race condition
-    await new Promise(r => setTimeout(r, 500));
+        const contract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            ABI,
+            provider
+        );
 
-    const valid = await contract.verifyCertificate(hash);
+        const params = new URLSearchParams(window.location.search);
+        const hash = params.get("h");
 
-    if (valid) {
-      status.innerText = "✅ Certificate Verified";
-      status.className = "success";
-      result.innerHTML = `
-        <p><strong>Status:</strong> Authentic</p>
-        <p><strong>Network:</strong> Ethereum Sepolia</p>
-        <p><strong>Verification:</strong> On-chain</p>
-      `;
-    } else {
-      status.innerText = "❌ Certificate Not Found";
-      status.className = "error";
+        if (!hash) {
+            status.innerText = "❌ Invalid or missing QR data";
+            status.className = "error";
+            return;
+        }
+
+        status.innerText = "🔍 Verifying certificate on blockchain...";
+
+        const isValid = await contract.verifyCertificate(hash);
+
+        if (isValid) {
+            status.innerText = "✅ Certificate is VALID";
+            status.className = "success";
+            details.classList.remove("hidden");
+        } else {
+            status.innerText = "❌ Certificate NOT FOUND";
+            status.className = "error";
+        }
+
+    } catch (err) {
+        console.error(err);
+        status.innerText = "❌ Blockchain connection failed";
+        status.className = "error";
     }
-
-  } catch (err) {
-    console.error(err);
-    status.innerText = "❌ Blockchain Connection Failed";
-    status.className = "error";
-  }
-}
-
-autoVerify();
+});
