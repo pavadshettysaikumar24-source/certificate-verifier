@@ -1,14 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Certificate Verification</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <link rel="stylesheet" href="verify.css">
+<meta charset="UTF-8">
+<title>Certificate Verification</title>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+<link rel="stylesheet" href="verify.css">
+
 </head>
 <body>
 
-<h2>Certificate Verification</h2>
-<p id="result">🔍 Verifying certificate...</p>
+<div class="card">
+  <h1>🎓 Certificate Verification</h1>
+
+  <p id="status" class="loading">🔍 Verifying certificate…</p>
+
+  <div id="result" class="details"></div>
+
+  <div class="footer">
+    <p>Powered by Blockchain • Tamper-Proof • Publicly Verifiable</p>
+  </div>
+</div>
 
 <script src="verify.js"></script>
 </body>
