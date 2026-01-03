@@ -1,56 +1,46 @@
-window.addEventListener("load", async () => {
+const CONTRACT_ADDRESS = "0x6B0AA29aA991A81A417F62aD3d4278bDDA8B4c1f";
 
-    const CONTRACT_ADDRESS = "0xFF0F56b3dC88C506E92B21696fDc95ABd2DD397a";
+const ABI = [
+  "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
+];
 
-    const ABI = [
-        "function verifyCertificate(bytes32 hash) public view returns (bool)"
-    ];
+const provider = new ethers.providers.JsonRpcProvider(
+  "https://rpc.ankr.com/eth_sepolia"
+);
 
+const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+async function autoVerify() {
+    const hash = new URLSearchParams(window.location.search).get("h");
     const status = document.getElementById("status");
-    const details = document.getElementById("details");
+
+    if (!hash) {
+        status.innerText = "❌ Invalid QR";
+        status.className = "error";
+        return;
+    }
 
     try {
-        if (typeof ethers === "undefined") {
-            throw new Error("Ethers failed to load");
-        }
+        const [valid, cid] = await contract.verifyCertificate(hash);
 
-        status.innerText = "🔗 Connecting to Sepolia RPC...";
-
-        const provider = new ethers.providers.JsonRpcProvider(
-            "https://rpc.ankr.com/eth_sepolia"
-        );
-
-        const contract = new ethers.Contract(
-            CONTRACT_ADDRESS,
-            ABI,
-            provider
-        );
-
-        const params = new URLSearchParams(window.location.search);
-        const hash = params.get("h");
-
-        if (!hash) {
-            status.innerText = "❌ Invalid or missing QR data";
-            status.className = "error";
-            return;
-        }
-
-        status.innerText = "🔍 Verifying certificate on blockchain...";
-
-        const isValid = await contract.verifyCertificate(hash);
-
-        if (isValid) {
-            status.innerText = "✅ Certificate is VALID";
+        if (valid) {
+            status.innerHTML = `
+              ✅ Certificate VERIFIED<br><br>
+              <a href="https://gateway.pinata.cloud/ipfs/${cid}" target="_blank">
+                📄 View Certificate PDF
+              </a>
+            `;
             status.className = "success";
-            details.classList.remove("hidden");
         } else {
-            status.innerText = "❌ Certificate NOT FOUND";
+            status.innerText = "❌ Certificate not found";
             status.className = "error";
         }
 
-    } catch (err) {
-        console.error(err);
-        status.innerText = "❌ Blockchain connection failed";
+    } catch (e) {
+        console.error(e);
+        status.innerText = "❌ Blockchain connection error";
         status.className = "error";
     }
-});
+}
+
+autoVerify();
