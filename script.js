@@ -5,25 +5,8 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool, string)"
 ];
 
-// Normalize data
 function normalize(regno, name, course, year) {
   return `${regno}|${name}|${course}|${year}`.toLowerCase().trim();
-}
-
-// ✅ NFT.Storage upload (WORKS on GitHub Pages)
-async function uploadToIPFS(file) {
-  const res = await fetch("https://api.nft.storage/upload", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer 57542bbb.e7fb5f49386a4374809a2f6cd88a7f6c"
-    },
-    body: file
-  });
-
-  if (!res.ok) throw new Error("NFT.Storage upload failed");
-
-  const data = await res.json();
-  return data.value.cid;
 }
 
 async function upload() {
@@ -37,18 +20,15 @@ async function upload() {
     const name   = document.getElementById("name").value;
     const course = document.getElementById("course").value;
     const year   = document.getElementById("year").value;
-    const pdf    = document.getElementById("pdf").files[0];
+    const cid    = document.getElementById("cid").value;
 
     const status = document.getElementById("status");
     const qrcode = document.getElementById("qrcode");
 
-    if (!regno || !name || !course || !year || !pdf) {
-      alert("All fields + PDF required");
+    if (!regno || !name || !course || !year || !cid) {
+      alert("Fill all fields + CID");
       return;
     }
-
-    status.innerText = "📤 Uploading PDF to IPFS...";
-    const cid = await uploadToIPFS(pdf);
 
     const hash = ethers.utils.keccak256(
       ethers.utils.toUtf8Bytes(normalize(regno, name, course, year))
