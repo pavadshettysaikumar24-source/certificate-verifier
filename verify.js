@@ -4,25 +4,25 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-// ✅ PUBLIC READ-ONLY PROVIDER
+// ✅ STABLE PUBLIC RPC
 const provider = new ethers.providers.JsonRpcProvider(
-  "https://rpc.ankr.com/eth_sepolia"
+  "https://ethereum-sepolia.publicnode.com"
 );
 
 const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
 async function autoVerify() {
-  const params = new URLSearchParams(window.location.search);
-  const hash = params.get("h");
-
   const result = document.getElementById("result");
 
-  if (!hash) {
-    result.innerText = "❌ Invalid QR code";
-    return;
-  }
-
   try {
+    const params = new URLSearchParams(window.location.search);
+    const hash = params.get("h");
+
+    if (!hash) {
+      result.innerText = "❌ Invalid QR code";
+      return;
+    }
+
     const valid = await contract.verifyCertificate(hash);
 
     if (valid) {
@@ -33,9 +33,11 @@ async function autoVerify() {
       result.style.color = "red";
     }
   } catch (err) {
-    console.error(err);
+    console.error("Verify error:", err);
     result.innerText = "❌ Blockchain connection error";
+    result.style.color = "red";
   }
 }
 
-autoVerify();
+// ✅ MOBILE-SAFE
+window.addEventListener("load", autoVerify);
