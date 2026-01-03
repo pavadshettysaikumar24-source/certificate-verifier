@@ -4,53 +4,52 @@ const ABI = [
   "function verifyCertificate(bytes32 hash) public view returns (bool)"
 ];
 
-window.addEventListener("load", async () => {
+// ✅ Highly reliable public RPC (mobile-safe)
+const provider = new ethers.providers.JsonRpcProvider(
+  "https://cloudflare-eth.com"
+);
+
+const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+async function autoVerify() {
+  const params = new URLSearchParams(window.location.search);
+  const hash = params.get("h");
+
   const result = document.getElementById("result");
+  const status = document.getElementById("status");
+
+  if (!hash || !hash.startsWith("0x")) {
+    status.innerText = "❌ Invalid QR Code";
+    status.className = "error";
+    return;
+  }
 
   try {
-    result.innerText = "⏳ Initializing...";
+    status.innerText = "🌐 Connecting to blockchain...";
+    
+    // ⏳ small delay to avoid mobile race condition
+    await new Promise(r => setTimeout(r, 500));
 
-    console.log("Ethers version:", ethers.version);
+    const valid = await contract.verifyCertificate(hash);
 
-    const params = new URLSearchParams(window.location.search);
-    const hash = params.get("h");
-
-    if (!hash) {
-      throw new Error("Hash missing in URL");
+    if (valid) {
+      status.innerText = "✅ Certificate Verified";
+      status.className = "success";
+      result.innerHTML = `
+        <p><strong>Status:</strong> Authentic</p>
+        <p><strong>Network:</strong> Ethereum Sepolia</p>
+        <p><strong>Verification:</strong> On-chain</p>
+      `;
+    } else {
+      status.innerText = "❌ Certificate Not Found";
+      status.className = "error";
     }
 
-    console.log("Hash:", hash);
-
-    result.innerText = "🌐 Connecting to RPC...";
-
-    const provider = new ethers.providers.JsonRpcProvider(
-      "https://rpc.sepolia.org"
-    );
-
-    await provider.getBlockNumber(); // 🔥 FORCE connection test
-    console.log("RPC connected");
-
-    result.innerText = "📜 Loading contract...";
-
-    const contract = new ethers.Contract(
-      CONTRACT_ADDRESS,
-      ABI,
-      provider
-    );
-
-    result.innerText = "🔍 Verifying certificate...";
-
-    const isValid = await contract.verifyCertificate(hash);
-
-    console.log("Verification result:", isValid);
-
-    result.innerText = isValid
-      ? "✅ Certificate is VALID"
-      : "❌ Certificate NOT FOUND";
-
   } catch (err) {
-    console.error("FULL ERROR:", err);
-    result.innerText = "❌ ERROR: " + err.message;
-    result.style.color = "red";
+    console.error(err);
+    status.innerText = "❌ Blockchain Connection Failed";
+    status.className = "error";
   }
-});
+}
+
+autoVerify();
